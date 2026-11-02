@@ -156,8 +156,17 @@ Your candle data, drawings and trades stay on your computer; nothing is uploaded
 
 ## Disclaimer
 
-This is a practice and research tool, not financial advice. Simulated results ignore commissions, slippage and
+**Not financial advice.** This is a practice and research tool. Simulated results ignore commissions, slippage and
 liquidity, and past performance does not predict future results.
+
+**Market data is your responsibility.** Ghost Charts does not include, host or distribute any market data. When you
+click *Download data* or *Update data*, candles are fetched from **your own** MetaTrader 5 terminal and broker account
+and stored only on your computer. You do this at your own risk, and it is up to you to make sure your use of that
+data follows your broker's and MetaQuotes' terms. The data's accuracy and completeness depend on your broker and
+are not guaranteed.
+
+**Independent project.** Ghost Charts is not affiliated with or endorsed by TradingView or MetaQuotes.
+TradingView and MetaTrader are trademarks of their respective owners.
 
 ## Credits
 
