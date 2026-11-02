@@ -1,0 +1,5 @@
+# Candle data is downloaded by each user from their own MetaTrader 5 (click "Update data")
+data/
+*.tmp
+__pycache__/
+.claude/

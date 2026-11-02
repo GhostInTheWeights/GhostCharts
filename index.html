@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ghost Charts</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👻</text></svg>">
+<link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <span class="brand" title="Ghost Charts">👻 <b>Ghost Charts</b></span>
+    <div class="sep"></div>
+    <select id="symSel" title="Symbol"></select>
+    <div class="sep"></div>
+    <div id="tfBtns" class="seg"></div>
+    <div class="sep"></div>
+    <button id="replayBtn" class="tb-btn" title="Bar replay">
+      <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M4 5h2v14H4zM8 12l11-7v14z"/></svg>
+      <span>Replay</span>
+    </button>
+    <div class="sep"></div>
+    <label class="tb-lbl">Go to</label>
+    <input type="datetime-local" id="gotoInput">
+    <button id="gotoBtn" class="tb-btn">Go</button>
+    <div class="grow"></div>
+    <span id="dataUpTo" class="tb-lbl"></span>
+    <button id="updateBtn" class="tb-btn" title="Fetch the latest candles from MetaTrader 5">
+      <svg viewBox="0 0 24 24" width="17" height="17"><path fill="none" stroke="currentColor" stroke-width="2" d="M20 12a8 8 0 01-14.3 4.9M4 12a8 8 0 0114.3-4.9"/><path fill="currentColor" d="M19 3v5h-5zM5 21v-5h5z"/></svg>
+      <span>Update data</span>
+    </button>
+    <div class="sep"></div>
+    <label class="tb-lbl">Time zone</label>
+    <select id="tzSel">
+      <option value="local">Local</option>
+      <option value="UTC">UTC</option>
+      <option value="Asia/Kolkata">Kolkata (IST)</option>
+      <option value="Europe/London">London</option>
+      <option value="America/New_York">New York</option>
+    </select>
+  </header>
+
+  <div id="main">
+    <nav id="tools">
+      <button data-tool="cursor" class="tool active" title="Cursor (Esc)">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M6 3l12 9-5.5 1 3.2 6.3-2.2 1.1-3.2-6.3L6 18z"/></svg></button>
+      <button data-tool="trend" class="tool" title="Trend line (Alt+T)">
+        <svg viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.6" d="M5 19L19 5"/><circle cx="5" cy="19" r="2.2" fill="currentColor"/><circle cx="19" cy="5" r="2.2" fill="currentColor"/></svg></button>
+      <button data-tool="hline" class="tool" title="Horizontal line (Alt+H)">
+        <svg viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.6" d="M2 12h20"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/></svg></button>
+      <button data-tool="rect" class="tool" title="Rectangle (Alt+R)">
+        <svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+      <div class="tool-sep"></div>
+      <button id="magnetBtn" class="tool" title="Magnet: snap to OHLC">
+        <svg viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M6 4v8a6 6 0 0012 0V4"/><path stroke="currentColor" stroke-width="3" d="M6 4v3M18 4v3"/></svg></button>
+      <button id="clearDrawBtn" class="tool" title="Remove all drawings">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 3h6l1 2h4v2H4V5h4zM6 9h12l-1 12H7z"/></svg></button>
+    </nav>
+
+    <section id="center">
+      <div id="chartWrap">
+        <div id="chart"></div>
+        <canvas id="overlay"></canvas>
+        <div id="legend"></div>
+        <div id="drawBar" class="hidden"></div>
+        <div id="replayBar" class="hidden">
+          <span id="rbHint">Click a bar to start replay from there, or choose a date:</span>
+          <input type="datetime-local" id="rbDate">
+          <button id="rbStartBtn" class="rb-btn">Start</button>
+          <button id="rbContinueBtn" class="rb-btn hidden">Continue session</button>
+          <span class="rb-group" id="rbPlayGroup">
+            <button id="rbSelectBtn" class="rb-icon" title="Select a new start bar">
+              <svg viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.6" d="M12 2v20"/><path fill="currentColor" d="M3 8l6 4-6 4zM21 8l-6 4 6 4z"/></svg></button>
+            <button id="rbPlayBtn" class="rb-icon" title="Play / pause (Space)">
+              <svg viewBox="0 0 24 24" id="playIcon"><path fill="currentColor" d="M7 4l13 8-13 8z"/></svg></button>
+            <button id="rbStepBtn" class="rb-icon" title="Forward one step (→)">
+              <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 4l11 8-11 8zM17 4h3v16h-3z"/></svg></button>
+            <select id="rbSpeed" title="Playback speed">
+              <option value="1000">1 bar/s</option>
+              <option value="500">2 bars/s</option>
+              <option value="250">4 bars/s</option>
+              <option value="100">10 bars/s</option>
+              <option value="40">25 bars/s</option>
+            </select>
+            <label class="rb-lbl">Step</label>
+            <select id="rbStepTf" title="Step size"></select>
+            <span id="rbTime"></span>
+            <button id="rbExitBtn" class="rb-icon" title="Exit replay">
+              <svg viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M6 6l12 12M18 6L6 18"/></svg></button>
+          </span>
+        </div>
+        <div id="loading" class="hidden">Loading…</div>
+      </div>
+
+      <div id="bottom">
+        <div id="tabs">
+          <button data-tab="positions" class="tab active">Positions <span id="posCount"></span></button>
+          <button data-tab="orders" class="tab">Orders <span id="ordCount"></span></button>
+          <button data-tab="history" class="tab">History <span id="histCount"></span></button>
+          <button data-tab="stats" class="tab">Stats</button>
+          <div class="grow"></div>
+          <span id="acctLine"></span>
+        </div>
+        <div id="tabBody"></div>
+      </div>
+    </section>
+
+    <aside id="ticket">
+      <div id="ticketOff" class="ticket-off">Start <b>Replay</b> to place orders.</div>
+      <div id="ticketOn">
+        <div class="tk-sym" id="tkSym"></div>
+        <div class="tk-sides">
+          <button id="sellSide" class="side sell"><span>SELL</span><b id="bidPx">—</b></button>
+          <div id="spreadPx"></div>
+          <button id="buySide" class="side buy active"><span>BUY</span><b id="askPx">—</b></button>
+        </div>
+        <div class="seg full" id="typeSeg">
+          <button data-type="market" class="active">Market</button>
+          <button data-type="limit">Limit</button>
+          <button data-type="stop">Stop</button>
+        </div>
+        <div class="tk-row" id="priceRow">
+          <label>Price</label>
+          <input type="number" id="tkPrice" step="any">
+          <button class="pick" data-pick="tkPrice" title="Pick price from chart">⌖</button>
+        </div>
+        <div class="tk-row">
+          <label>Size</label>
+          <div class="seg mini" id="sizeSeg">
+            <button data-mode="lots" class="active">Lots</button>
+            <button data-mode="risk">Risk %</button>
+          </div>
+          <input type="number" id="tkSize" step="any" value="1">
+        </div>
+        <div class="tk-hint" id="sizeHint"></div>
+        <div class="tk-row">
+          <label><input type="checkbox" id="tkSlOn"> Stop loss</label>
+          <input type="number" id="tkSl" step="any">
+          <button class="pick" data-pick="tkSl" title="Pick stop from chart">⌖</button>
+        </div>
+        <div class="tk-hint" id="slHint"></div>
+        <div class="tk-row">
+          <label><input type="checkbox" id="tkTpOn"> Take profit</label>
+          <input type="number" id="tkTp" step="any">
+          <button class="pick" data-pick="tkTp" title="Pick target from chart">⌖</button>
+        </div>
+        <div class="tk-row">
+          <label class="dim">TP at R:R</label>
+          <input type="number" id="tkRR" step="any" placeholder="e.g. 2">
+          <span class="pick-pad"></span>
+        </div>
+        <div class="tk-hint" id="tpHint"></div>
+        <button id="placeBtn" class="place buy">Buy</button>
+        <label class="tk-check"><input type="checkbox" id="spreadOn" checked> Simulate spread (from data)</label>
+        <p class="tk-note">Fills are simulated on the smallest loaded timeframe (M1 when you view or step M1 and the symbol has M1 data, otherwise M5). If SL and TP both fall in one candle, the SL is assumed hit first.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+<div id="welcome" class="hidden">
+  <div class="welcome-card">
+    <h1>👻 Ghost Charts</h1>
+    <p>No candle data yet. The app downloads it from <b>MetaTrader 5</b> on this computer.</p>
+    <ol>
+      <li>Open MetaTrader 5 and log in to your broker account (a free demo account works).</li>
+      <li>Click the button below. The first download can take a few minutes.</li>
+    </ol>
+    <p class="dim">Symbols and start dates are set in <code>symbols.json</code>.</p>
+    <button id="welcomeBtn" class="rb-btn">Download data</button>
+    <span id="welcomeBusy" class="hidden dim">Downloading… keep this tab open.</span>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "_help": "Symbols to download from MetaTrader 5. 'start' = first date to fetch. 'm1': true also downloads 1-minute candles (big). 'mt5_name' is optional, for brokers whose symbol names differ (e.g. XAUUSDm).",
+  "symbols": [
+    { "name": "XAUUSD", "start": "2023-01-01", "m1": true },
+    { "name": "EURUSD", "start": "2020-01-01" },
+    { "name": "GBPUSD", "start": "2021-06-01" }
+  ]
+}
